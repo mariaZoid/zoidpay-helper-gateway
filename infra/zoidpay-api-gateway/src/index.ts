@@ -2,6 +2,7 @@ import * as pulumi from "@pulumi/pulumi";
 import * as aws from "@pulumi/aws";
 import * as awsx from "@pulumi/awsx";
 import * as awsnative from "@pulumi/aws-native";
+import { createRoute53Zone, createACMCertificate } from "./domains";
 
 const namespace = `${pulumi.getProject()}-${pulumi.getStack()}`;
 const cfg = new pulumi.Config();
@@ -19,6 +20,9 @@ const vpc = {
   vpcDefaultSecurityGroupID: sharedStack.getOutput("vpcDefaultSecurityGroupID"),
 };
 
+const dnsZone = createRoute53Zone();
+const certificate = createACMCertificate(dnsZone);
+
 const loadBalancers: aws.types.input.ecs.ServiceLoadBalancer[] = [];
 
 const loadBalancer = new awsx.lb.ApplicationLoadBalancer(`${namespace}-alb`, {
@@ -34,6 +38,12 @@ const loadBalancer = new awsx.lb.ApplicationLoadBalancer(`${namespace}-alb`, {
     },
   },
   listeners: [
+    {
+      port: 443,
+      protocol: "HTTPS",
+      sslPolicy: "ELBSecurityPolicy-2016-08",
+      certificateArn: certificate.arn,
+    },
     {
       port: 80,
       protocol: "HTTP",
