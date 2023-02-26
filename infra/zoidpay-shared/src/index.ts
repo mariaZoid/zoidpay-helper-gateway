@@ -56,3 +56,6 @@ export const publicSubnetsIDs = [
 ];
 
 export const vpcDefaultSecurityGroupID = "sg-0487e4531ee912145";
+export const vpcID = "vpc-014118dc1723130c9";
+
+
