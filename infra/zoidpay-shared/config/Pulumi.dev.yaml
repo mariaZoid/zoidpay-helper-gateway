@@ -1,4 +1,4 @@
 config:
   aws:region: eu-central-1
 
-  zoidpay-shared:example: "example123"
+  zoidpay-shared:logsRetentionInDays: 30
