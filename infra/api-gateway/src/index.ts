@@ -25,7 +25,6 @@ const loadBalancer = new awsx.lb.ApplicationLoadBalancer(`${namespace}-alb`, {
   subnetIds: vpc.publicSubnetsIDs,
   defaultTargetGroup: {
     name: `${namespace}-tg`,
-    vpcId: vpc.id,
     port: 80,
     protocol: "HTTP",
     healthCheck: {
@@ -117,7 +116,7 @@ const fargateService = new awsx.ecs.FargateService(`${namespace}-ecs-service`, {
   cluster: clusterArn,
   networkConfiguration: {
     subnets: vpc.publicSubnetsIDs,
-    assignPublicIp: false,
+    assignPublicIp: true,
     securityGroups: [vpc.vpcDefaultSecurityGroupID],
   },
   desiredCount: 1,
