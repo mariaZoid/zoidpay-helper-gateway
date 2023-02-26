@@ -8,6 +8,8 @@ export const generateWebToken = (email: string) => {
 };
 
 export const authenticateToken = (req: any, res: Response, next: NextFunction) => {
+  console.log("authenticateToken incoming");
+
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
 

@@ -9,13 +9,15 @@ const userServiceProxy = httpProxy(process.env.BLOCKCHAIN_HELPERS_API_URL!)
 
 // auth works
 app.post('/*', authenticateToken, (req, res, next) => {
+  console.log("request incoming");
   userServiceProxy(req, res, next);
 });
 
 app.get('/*', (req, res, next) => {
+  console.log("request incoming");
   userServiceProxy(req, res, next);
 });
 
 app.listen(80, () => {
-    console.log(`Example app listening on port ${80}`);
+    console.log(`Example app listening on port ${80} with logs`);
 });
