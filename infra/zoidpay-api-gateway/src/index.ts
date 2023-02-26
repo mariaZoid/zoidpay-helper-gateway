@@ -33,7 +33,7 @@ const loadBalancer = new awsx.lb.ApplicationLoadBalancer(`${namespace}-alb`, {
     port: 80,
     protocol: "HTTP",
     healthCheck: {
-      path: "/is-alive",
+      path: "/api-docs/",
       matcher: "200",
     },
   },
