@@ -1,5 +1,6 @@
 config:
   aws:region: eu-central-1
+  aws-native:region: eu-central-1
 
   zoidpay-api-gateway:sharedStackReference: "zoidpay/zoidpay-shared/dev"
 
