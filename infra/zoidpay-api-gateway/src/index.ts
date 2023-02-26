@@ -144,12 +144,12 @@ const taskDefinition = new aws.ecs.TaskDefinition(
           },
           environment: [
             {
-              name: "IMX_EVENT_STREAM",
-              value: cfg.require("eventStreamName"),
+              name: "BLOCKCHAIN_HELPERS_API",
+              value: cfg.require("blockchainApi"),
             },
             {
-              name: "LOG_LEVEL",
-              value: cfg.require("logLevel"),
+              name: "TOKEN_SECRET",
+              value: cfg.require("tokenSecret"),
             },
           ],
         },
