@@ -1,0 +1,10 @@
+.build
+# package directories
+jspm_packages
+/node_modules
+
+/dist
+/.env
+/build
+build
+.build
