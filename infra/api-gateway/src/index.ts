@@ -96,8 +96,12 @@ const fargateTaskDefinition = new awsx.ecs.FargateTaskDefinition(
         image: `${sharedECRRepositoryURI}:${cfg.require("imageTag")}`,
         environment: [
           {
-            name: "EXAMPLE",
-            value: "example123",
+            name: "BLOCKCHAIN_HELPERS_API_URL",
+            value: "https://6cvbb4t4465ecwdgtftvudcmce0xhuvc.lambda-url.eu-central-1.on.aws/api-docs",
+          },
+          {
+            name: "TOKEN_SECRET",
+            value: "em9pZHBheVRva2VuU2VjcmV0MTc5NQ==",
           },
         ],
         portMappings: [
