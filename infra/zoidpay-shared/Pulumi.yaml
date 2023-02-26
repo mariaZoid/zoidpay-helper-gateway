@@ -1,0 +1,4 @@
+name: zoidpay-shared
+config: ./config
+runtime: nodejs
+description: The shared infrastructure
