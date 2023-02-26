@@ -120,7 +120,8 @@ const logResourcePolicy = new aws.cloudwatch.LogResourcePolicy(
 );
 
 const sharedECRRepositoryURI =
-  "982700784699.dkr.ecr.us-east-1.amazonaws.com/shared-ecr-repository";
+  "169819332803.dkr.ecr.eu-central-1.amazonaws.com/zoidpay-shared-repository";
+
 const taskDefinition = new aws.ecs.TaskDefinition(
   `${namespace}-task-definition`,
   {

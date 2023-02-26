@@ -3,3 +3,4 @@ config:
 
   zoidpay-api-gateway:sharedStackReference: "zoidpay/zoidpay-shared/dev"
   zoidpay-api-gateway:logsRetentionInDays: 30
+  zoidpay-api-gateway:imageTag: "latest"
