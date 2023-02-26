@@ -50,6 +50,7 @@ const ecrRepository = new aws.ecr.Repository(`${namespace}-ecr-repository`, {
 });
 
 export const clusterID = cluster.id;
+export const clusterArn = cluster.arn;
 
 export const publicSubnetsIDs = [
   "subnet-0c2539ed5cf649f69"
