@@ -2,3 +2,4 @@ config:
   aws:region: eu-central-1
 
   zoidpay-shared:logsRetentionInDays: 30
+  zoidpay-shared:imageTag: "TODO copy imageTag from ECR after its pushed"
