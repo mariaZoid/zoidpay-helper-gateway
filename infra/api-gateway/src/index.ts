@@ -97,7 +97,7 @@ const fargateTaskDefinition = new awsx.ecs.FargateTaskDefinition(
         environment: [
           {
             name: "BLOCKCHAIN_HELPERS_API_URL",
-            value: "https://6cvbb4t4465ecwdgtftvudcmce0xhuvc.lambda-url.eu-central-1.on.aws/api-docs",
+            value: "https://6cvbb4t4465ecwdgtftvudcmce0xhuvc.lambda-url.eu-central-1.on.aws",
           },
           {
             name: "TOKEN_SECRET",
