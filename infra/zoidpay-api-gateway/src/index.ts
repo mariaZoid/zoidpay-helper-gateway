@@ -1,5 +1,7 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as aws from "@pulumi/aws";
+import * as awsx from "@pulumi/awsx";
+import * as awsnative from "@pulumi/aws-native";
 
 const namespace = `${pulumi.getProject()}-${pulumi.getStack()}`;
 const cfg = new pulumi.Config();
@@ -8,146 +10,149 @@ const sharedStack = new pulumi.StackReference(
   cfg.require("sharedStackReference")
 );
 
-const clusterId = sharedStack.getOutput("clusterID");
+const clusterArn = sharedStack.getOutput("clusterArn");
+const clusterName = sharedStack.getOutput("clusterName");
 
 const vpc = {
+  id: sharedStack.getOutput("vpcId"),
   publicSubnetsIDs: sharedStack.getOutput("publicSubnetsIDs"),
   vpcDefaultSecurityGroupID: sharedStack.getOutput("vpcDefaultSecurityGroupID"),
-}
+};
 
-// A role that AWS assumes in order to *launch* the task (not the role that the task itself assumes)
-const executionRole = new aws.iam.Role(`${namespace}-execution-role`, {
-  description: `Allows the AWS ECS service to create and manage the ${namespace} service`,
-  assumeRolePolicy: {
-    Version: "2012-10-17",
-    Statement: [
-      {
-        Effect: "Allow",
-        Principal: { Service: "ecs-tasks.amazonaws.com" },
-        Action: "sts:AssumeRole",
-      },
-    ],
+const loadBalancers: aws.types.input.ecs.ServiceLoadBalancer[] = [];
+
+const loadBalancer = new awsx.lb.ApplicationLoadBalancer(`${namespace}-alb`, {
+  subnetIds: vpc.publicSubnetsIDs,
+  defaultTargetGroup: {
+    name: `${namespace}-tg`,
+    vpcId: vpc.id,
+    port: 80,
+    protocol: "HTTP",
+    healthCheck: {
+      path: "/is-alive",
+      matcher: "200",
+    },
   },
-});
-
-// AWS-managed policy giving the above role some basic permissions it needs
-const _executionPolicyBasic = new aws.iam.RolePolicyAttachment(
-  `${namespace}-basic-ecs-policy`,
-  {
-    policyArn:
-      "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy",
-    role: executionRole,
-  },
-  { parent: executionRole }
-);
-
-// The role the actual task itself will assume when running
-const taskRole = new aws.iam.Role(`${namespace}-task-role`, {
-  assumeRolePolicy: {
-    Version: "2012-10-17",
-    Statement: [
-      {
-        Effect: "Allow",
-        Principal: {
-          Service: "ecs-tasks.amazonaws.com",
-        },
-        Action: "sts:AssumeRole",
-      },
-    ],
-  },
-});
-
-const logGroupName = "/aws/ecs/ZoidpayAPIGateway";
-const logGroup = new aws.cloudwatch.LogGroup(`${namespace}-log-group`, {
-  name: logGroupName,
-  retentionInDays: cfg.requireNumber("logsRetentionInDays"),
-});
-
-const logResourcePolicyDocument = aws.iam.getPolicyDocument({
-  statements: [
+  listeners: [
     {
-      actions: [
-        "logs:CreateLogStream",
-        "logs:PutLogEvents",
-        "logs:PutLogEventsBatch",
-      ],
-      resources: ["arn:aws:logs:*"],
-      principals: [
+      port: 80,
+      protocol: "HTTP",
+      defaultActions: [
         {
-          identifiers: ["es.amazonaws.com"],
-          type: "Service",
+          type: "redirect",
+          redirect: {
+            port: "443",
+            protocol: "HTTPS",
+            statusCode: "HTTP_301",
+          },
         },
       ],
     },
   ],
 });
 
-const logResourcePolicy = new aws.cloudwatch.LogResourcePolicy(
-  `${namespace}-log-resource-policy`,
+const webAclRules: awsnative.wafv2.WebACLArgs["rules"] = [];
+
+const webAcl = new awsnative.wafv2.WebACL(`${namespace}-web-acl`, {
+  scope: "REGIONAL",
+  defaultAction: { allow: {} },
+  rules: webAclRules,
+  visibilityConfig: {
+    cloudWatchMetricsEnabled: false,
+    metricName: "Requests",
+    sampledRequestsEnabled: false,
+  },
+});
+
+const _webAclAssociation = new aws.wafv2.WebAclAssociation(
+  `${namespace}-web-acl-assoc`,
   {
-    policyDocument: logResourcePolicyDocument.then(
-      (policyDocument) => policyDocument.json
-    ),
-    policyName: "log-publishing-policy",
+    resourceArn: loadBalancer.loadBalancer.arn,
+    webAclArn: webAcl.arn,
   }
 );
+
+loadBalancers.push({
+  containerName: "container",
+  containerPort: 80,
+  targetGroupArn: loadBalancer.defaultTargetGroup.arn,
+});
 
 const sharedECRRepositoryURI =
   "169819332803.dkr.ecr.eu-central-1.amazonaws.com/zoidpay-shared-repository";
 
-const taskDefinition = new aws.ecs.TaskDefinition(
+const fargateTaskDefinition = new awsx.ecs.FargateTaskDefinition(
   `${namespace}-task-definition`,
   {
-    family: "TaskDefinition",
-    containerDefinitions: logGroup.name.apply((logGroupNameValue) =>
-      JSON.stringify([
-        {
-          name: "service",
-          image: `${sharedECRRepositoryURI}:${cfg.require("imageTag")}`,
-          cpu: 512,
-          memory: 1024,
-          essential: true,
-          logConfiguration: {
-            logDriver: "awslogs",
-            options: {
-              "awslogs-region": aws.config.requireRegion().toString(),
-              "awslogs-group": logGroupNameValue,
-              "awslogs-stream-prefix": namespace,
-            },
-          },
-          environment: [
-            {
-              name: "BLOCKCHAIN_HELPERS_API",
-              value: cfg.require("blockchainApi"),
-            },
-            {
-              name: "TOKEN_SECRET",
-              value: cfg.require("tokenSecret"),
-            },
-          ],
-        },
-      ])
-    ),
-    executionRoleArn: executionRole.arn,
-    taskRoleArn: taskRole.arn,
     cpu: "512",
     memory: "1024",
-    requiresCompatibilities: ["FARGATE"],
-    networkMode: "awsvpc",
-  },
-  { dependsOn: logGroup }
+    containers: {
+      container: {
+        image: `${sharedECRRepositoryURI}:${cfg.require("imageTag")}`,
+        environment: [
+          {
+            name: "EXAMPLE",
+            value: "example123",
+          },
+        ],
+        portMappings: [
+          {
+            containerPort: 80,
+            hostPort: 80,
+            protocol: "tcp",
+          },
+        ],
+      },
+    },
+  }
 );
 
-const service = new aws.ecs.Service(namespace, {
-  cluster: clusterId,
-  launchType: "FARGATE",
-  taskDefinition: taskDefinition.arn,
-  desiredCount: 1,
+const fargateService = new awsx.ecs.FargateService(`${namespace}-ecs-service`, {
+  cluster: clusterArn,
   networkConfiguration: {
     subnets: vpc.publicSubnetsIDs,
-    assignPublicIp: true,
+    assignPublicIp: false,
     securityGroups: [vpc.vpcDefaultSecurityGroupID],
   },
+  desiredCount: 1,
+  loadBalancers,
+  taskDefinition: fargateTaskDefinition.taskDefinition.arn,
 });
 
-export const serviceID = service.id;
+// Autoscaling configuration
+const { minTasks, maxTasks, scaleInCooldown, scaleOutCooldown, threshold } = {
+  minTasks: 1,
+  maxTasks: 3,
+  scaleInCooldown: 60,
+  scaleOutCooldown: 60,
+  threshold: 70,
+};
+
+const autoScalingTarget = new aws.appautoscaling.Target(
+  `${namespace}-auto-scaling-target`,
+  {
+    minCapacity: minTasks,
+    maxCapacity: maxTasks,
+    serviceNamespace: "ecs",
+    resourceId: pulumi.interpolate`service/${clusterName}/${fargateService.service.name}`,
+    scalableDimension: "ecs:service:DesiredCount",
+  }
+);
+
+const _autoScalingPolicy = new aws.appautoscaling.Policy(
+  `${namespace}-auto-scaling-policy`,
+  {
+    policyType: "TargetTrackingScaling",
+    resourceId: autoScalingTarget.id,
+    scalableDimension: "ecs:service:DesiredCount",
+    serviceNamespace: "ecs",
+    targetTrackingScalingPolicyConfiguration: {
+      predefinedMetricSpecification: {
+        predefinedMetricType: "ECSServiceAverageCPUUtilization",
+      },
+      scaleInCooldown: scaleInCooldown ?? 60,
+      scaleOutCooldown: scaleOutCooldown ?? 60,
+      targetValue: threshold,
+    },
+  }
+);
