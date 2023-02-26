@@ -1,0 +1,25 @@
+{
+  "name": "zoidpay-helper-gateway",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "npx ts-node ./src/index.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mariaZoid/zoidpay-helper-gateway.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mariaZoid/zoidpay-helper-gateway/issues"
+  },
+  "homepage": "https://github.com/mariaZoid/zoidpay-helper-gateway#readme",
+  "devDependencies": {
+    "@types/node": "^18.14.1",
+    "typescript": "^4.9.5"
+  }
+}
