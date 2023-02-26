@@ -54,7 +54,9 @@ export const clusterArn = cluster.arn;
 export const clusterName = cluster.name;
 
 export const publicSubnetsIDs = [
-  "subnet-0c2539ed5cf649f69"
+  "subnet-0c2539ed5cf649f69",
+  "subnet-0f47fd2cfe1b068ca",
+  "subnet-0c35067bc0cf8e377"
 ];
 
 export const vpcDefaultSecurityGroupID = "sg-0487e4531ee912145";
