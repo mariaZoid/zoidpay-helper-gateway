@@ -41,4 +41,12 @@ const _clusterCapacityProviders = new aws.ecs.ClusterCapacityProviders(
   }
 );
 
+const ecrRepository = new aws.ecr.Repository(`${namespace}-ecr-repository`, {
+    imageScanningConfiguration: {
+        scanOnPush: true,
+    },
+    imageTagMutability: "MUTABLE",
+    name: "zoidpay-shared-repository"
+});
+
 export const clusterID = cluster.id;
