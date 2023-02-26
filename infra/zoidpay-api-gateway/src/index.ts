@@ -57,35 +57,7 @@ const taskRole = new aws.iam.Role(`${namespace}-task-role`, {
   },
 });
 
-const taskRolePolicy = new aws.iam.RolePolicy(`${namespace}-task-role-policy`, {
-  role: taskRole,
-  policy: {
-    Version: "2012-10-17",
-    Statement: [
-      {
-        Effect: "Allow",
-        Action: [
-          "dynamodb:BatchGetItem",
-          "dynamodb:GetItem",
-          "dynamodb:Scan",
-          "dynamodb:Query",
-          "dynamodb:BatchWriteItem",
-          "dynamodb:PutItem",
-          "dynamodb:UpdateItem",
-          "dynamodb:DeleteItem",
-        ],
-        Resource: "*",
-      },
-      {
-        Effect: "Allow",
-        Action: ["kinesis:PutRecords"],
-        Resource: "*",
-      },
-    ],
-  },
-});
-
-const logGroupName = "/aws/ecs/IMXPoller";
+const logGroupName = "/aws/ecs/ZoidpayAPIGateway";
 const logGroup = new aws.cloudwatch.LogGroup(`${namespace}-log-group`, {
   name: logGroupName,
   retentionInDays: cfg.requireNumber("logsRetentionInDays"),
@@ -109,6 +81,7 @@ const logResourcePolicyDocument = aws.iam.getPolicyDocument({
     },
   ],
 });
+
 const logResourcePolicy = new aws.cloudwatch.LogResourcePolicy(
   `${namespace}-log-resource-policy`,
   {
