@@ -145,7 +145,7 @@ const service = new aws.ecs.Service(namespace, {
   desiredCount: 1,
   networkConfiguration: {
     subnets: vpc.publicSubnetsIDs,
-    assignPublicIp: false,
+    assignPublicIp: true,
     securityGroups: [vpc.vpcDefaultSecurityGroupID],
   },
 });
