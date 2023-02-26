@@ -50,3 +50,11 @@ const ecrRepository = new aws.ecr.Repository(`${namespace}-ecr-repository`, {
 });
 
 export const clusterID = cluster.id;
+
+export const publicSubnetsIDs = [
+  "subnet-0f47fd2cfe1b068ca",
+  "subnet-0c35067bc0cf8e377",
+  "subnet-0c2539ed5cf649f69"
+];
+
+export const vpcDefaultSecurityGroupID = "vpc-014118dc1723130c9";
