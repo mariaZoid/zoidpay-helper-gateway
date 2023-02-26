@@ -1,5 +1,5 @@
 {
-    "name": "zoidpay-api-gateway",
+    "name": "api-gateway",
     "main": "src/index.ts",
     "devDependencies": {
         "@types/node": "^16.18.12",
