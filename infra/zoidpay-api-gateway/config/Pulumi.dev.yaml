@@ -1,4 +1,4 @@
 config:
   aws:region: eu-central-1
 
-  zoidpay-api-gateway:example: "example123"
+  zoidpay-api-gateway:sharedStackReference: "zoidpay/zoidpay-shared/dev"
