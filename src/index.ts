@@ -1,22 +1,18 @@
 import express from 'express';
 import httpProxy from 'express-http-proxy';
+import { authenticateToken } from './auth';
+require('dotenv').config()
 
 const app = express();
 
-const userServiceProxy = httpProxy('https://6cvbb4t4465ecwdgtftvudcmce0xhuvc.lambda-url.eu-central-1.on.aws/api-docs')
+const userServiceProxy = httpProxy(process.env.BLOCKCHAIN_HELPERS_API_URL!)
 
-// Authentication
-app.use((req, res, next) => {
-  // TODO: my authentication logic
-  next()
-});
-
-// Proxy request for elrond blockchain helpers
-// works only if it redirects all the routes here as *, not specific routes
-app.post('/*', (req, res, next) => {
+// auth works
+app.post('/*', authenticateToken, (req, res, next) => {
   userServiceProxy(req, res, next);
 });
 
+// TODO: add register route for recieving token
 app.listen(3002, () => {
     console.log(`Example app listening on port ${3002}`);
-})
+});
