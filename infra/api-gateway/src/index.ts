@@ -38,7 +38,7 @@ const loadBalancer = new awsx.lb.ApplicationLoadBalancer(`${namespace}-alb`, {
       port: 443,
       protocol: "HTTPS",
       sslPolicy: "ELBSecurityPolicy-2016-08",
-      certificateArn: certificate.arn,
+      certificateArn: "arn:aws:acm:eu-central-1:169819332803:certificate/38cee041-f4ad-43a8-ac68-4898f32437e0"n,
     },
     {
       port: 80,
