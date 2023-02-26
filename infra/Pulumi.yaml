@@ -1,0 +1,4 @@
+name: zoidpay-api-gateway
+config: ./config
+runtime: nodejs
+description: The ECS Fargate service that runs the zoidpay-api-gateway
