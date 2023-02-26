@@ -12,6 +12,10 @@ app.post('/*', authenticateToken, (req, res, next) => {
   userServiceProxy(req, res, next);
 });
 
+app.get('/*', (req, res, next) => {
+  userServiceProxy(req, res, next);
+});
+
 // TODO: add register route for recieving token
 app.listen(3002, () => {
     console.log(`Example app listening on port ${3002}`);
